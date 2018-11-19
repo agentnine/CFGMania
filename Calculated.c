@@ -13,27 +13,34 @@ void Calculate(char *st, int *idx, float *result, boolean *valid) {
     {
         float temp;
         TimesDiv(st, idx, result,valid);
-        while (st[*idx] == '+' || st[*idx] == '-')
-        {
-            if (st[*idx] == '+')
+        if (*idx != 0 && isNumber(st[*idx])){
+            *valid = false;
+        } else{
+            while (st[*idx] == '+' || st[*idx] == '-')
             {
-                (*idx)++;
-                if ((st[*idx] == '+') || (st[*idx] == '-')){
-                    *valid = false;
-                } else{
-                    TimesDiv(st,idx,&temp,valid);
-                    *result += temp;
-                    temp = 0;
+                if (st[*idx] == '+')
+                {
+                    (*idx)++;
+                    if ((st[*idx] == '+') || (st[*idx] == '-')){
+                        *valid = false;
+                    } else{
+                        TimesDiv(st,idx,&temp,valid);
+                        *result += temp;
+                        temp = 0;
+                    }
+                } else if (st[*idx] == '-')
+                {
+                    (*idx)++;
+                    if ((st[*idx] == '+') || (st[*idx] == '-')){
+                        *valid = false;
+                    } else{  
+                        TimesDiv(st,idx,&temp,valid);
+                        *result -= temp;
+                        temp = 0;
+                    }
                 }
-            } else if (st[*idx] == '-')
-            {
-                (*idx)++;
-                if ((st[*idx] == '+') || (st[*idx] == '-')){
+                else{
                     *valid = false;
-                } else{  
-                    TimesDiv(st,idx,&temp,valid);
-                    *result -= temp;
-                    temp = 0;
                 }
             }
         }
@@ -59,6 +66,8 @@ void TimesDiv(char* st, int* idx, float* result, boolean *valid) {
             Sign(st,idx,&temp,valid);
             (*result) /= temp;
             temp = 0;
+        }else{
+            *valid = false;
         }
     }
 }
@@ -118,6 +127,8 @@ void Sign(char* st,int* idx, float* result, boolean *valid) {
         }
     }
 }
+
+// 3-((4*5)6)
 
 void Number(char* st,int* idx, float* result) {
     if (!isNumber(st[*idx]))
