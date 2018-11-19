@@ -1,12 +1,3 @@
-#include "Calculated.h"
-
-/*
-S -> T | S+T | S-T calculate
-T -> F | T*F | T/F timesdiv
-F -> (S) | -A | A | A.A | -A.A sign
-A -> 0 | 1 | 2 | 3 | 4 | 5 | 6 | 7 | 8 | 9 | AA number
-*/
-
 boolean isNumber(char st) {
     return (st >= '0') && (st <='9');
 }
@@ -15,7 +6,7 @@ boolean isSymbol(char st) {
     return (st == '.') || (st == '(') || (st == ')') || (st == '+') || (st == '-') ||(st == '*') ||(st == '/');
 }
 
-void Calculate(char* st, int*idx, float * result, boolean *valid) {
+void Calculate(char *st, int *idx, float *result, boolean *valid) {
     if (*idx < panjangKata)
     {
         float temp;
@@ -25,15 +16,23 @@ void Calculate(char* st, int*idx, float * result, boolean *valid) {
             if (st[*idx] == '+')
             {
                 (*idx)++;
-                TimesDiv(st,idx,&temp,valid);
-                *result += temp;
-                temp = 0;
+                if ((st[*idx] == '+') || (st[*idx] == '-')){
+                    *valid = false;
+                } else{
+                    TimesDiv(st,idx,&temp,valid);
+                    *result += temp;
+                    temp = 0;
+                }
             } else if (st[*idx] == '-')
             {
                 (*idx)++;
-                TimesDiv(st,idx,&temp,valid);
-                *result -= temp;
-                temp = 0;
+                if ((st[*idx] == '+') || (st[*idx] == '-')){
+                    *valid = false;
+                } else{  
+                    TimesDiv(st,idx,&temp,valid);
+                    *result -= temp;
+                    temp = 0;
+                }
             }
         }
     } else {
@@ -68,8 +67,12 @@ void Sign(char* st,int* idx, float* result, boolean *valid) {
     if(st[*idx] == '(') {
         (*idx)++;
         Calculate(st,idx,result,valid);
-        if (st[*idx] == ')')
+        if (*idx == panjangKata && st[*idx] != ')'){
+            *valid = false;
+        }
+        else if (st[*idx] == ')'){
             (*idx)++;
+        }
         //else print error
     } else {
         if (st[*idx] == '-')
@@ -85,12 +88,24 @@ void Sign(char* st,int* idx, float* result, boolean *valid) {
                 (*idx)++;
                 FloatNumber(st,idx,&temp);
             }
-            *result = ((*result)+temp)*x;
+            *result = (*result+temp)*x;
             temp = 0;
         }
         else
         {
-            *valid = false;
+            if (st[*idx] == '('){
+                (*idx)++;
+                Calculate(st,idx,result,valid);
+                if (*idx == panjangKata && st[*idx] != ')'){
+                    *valid = false;
+                }
+                else if (st[*idx] == ')'){
+                    *result = (*result)*x;
+                    temp = 0;
+                    (*idx)++;
+                }
+                //else print error                
+            }
         }
     }
 }
