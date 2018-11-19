@@ -1,3 +1,5 @@
+#include "Calculated.h"
+
 boolean isNumber(char st) {
     return (st >= '0') && (st <='9');
 }
@@ -40,7 +42,7 @@ void Calculate(char *st, int *idx, float *result, boolean *valid) {
     }
 }
 
-void TimesDiv(char* st,int* idx, float* result, boolean *valid) {
+void TimesDiv(char* st, int* idx, float* result, boolean *valid) {
     float temp;
     Sign(st,idx,result,valid);
     while (st[*idx] == '*' || st[*idx] == '/')
@@ -64,7 +66,10 @@ void TimesDiv(char* st,int* idx, float* result, boolean *valid) {
 void Sign(char* st,int* idx, float* result, boolean *valid) {
     float temp = 0;
     int x = 1;
-    if(st[*idx] == '(') {
+    if (st[*idx] == '*' || st[*idx] == '/' || st[*idx] == '+'){
+            *valid = false;
+    }
+    else if(st[*idx] == '(') {
         (*idx)++;
         Calculate(st,idx,result,valid);
         if (*idx == panjangKata && st[*idx] != ')'){
@@ -78,7 +83,11 @@ void Sign(char* st,int* idx, float* result, boolean *valid) {
         if (st[*idx] == '-')
         {
             (*idx)++;
-            x = -1;
+            if (st[*idx] == '-'){
+                *valid = false;
+            } else{
+                x = -1;
+            }
         }
         if (isNumber(st[*idx]))
         {
