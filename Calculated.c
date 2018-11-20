@@ -1,5 +1,12 @@
 #include "Calculated.h"
 
+/*
+S -> T | S+T | S-T calculate
+T -> F | T*F | T/F timesdiv
+F -> (S) | -A | A | A.A | -A.A sign
+A -> 0 | 1 | 2 | 3 | 4 | 5 | 6 | 7 | 8 | 9 | AA number
+*/
+
 boolean isNumber(char st) {
     return (st >= '0') && (st <='9');
 }
@@ -9,128 +16,140 @@ boolean isSymbol(char st) {
 }
 
 void Calculate(char *st, int *idx, float *result, boolean *valid) {
-    if (*idx < panjangKata)
-    {
-        float temp;
+    // KAMUS LOKAL
+    float temp;
+
+    //ALGORITMA
+    printf("Awal Calculate %d %.2f %d\n", *valid, *result, *idx);
+    if (*idx < panjangKata){
         TimesDiv(st, idx, result,valid);
-        if (*idx != 0 && isNumber(st[*idx])){
-            *valid = false;
-        } else{
-            while (st[*idx] == '+' || st[*idx] == '-')
-            {
-                if (st[*idx] == '+')
-                {
+        if (*valid){
+            while ((st[*idx] == '+' || st[*idx] == '-') && *valid){
+                *valid = false;
+                if (st[*idx] == '+'){
                     (*idx)++;
-                    if ((st[*idx] == '+') || (st[*idx] == '-')){
-                        *valid = false;
-                    } else{
+                    if (st[*idx] != '-'){
                         TimesDiv(st,idx,&temp,valid);
-                        *result += temp;
-                        temp = 0;
+                        if (*valid){
+                            *result += temp;
+                            temp = 0;
+                            *valid = true;
+                        }
                     }
-                } else if (st[*idx] == '-')
-                {
+                } else if (st[*idx] == '-'){
                     (*idx)++;
-                    if ((st[*idx] == '+') || (st[*idx] == '-')){
-                        *valid = false;
-                    } else{  
+                    if (st[*idx] != '-'){
                         TimesDiv(st,idx,&temp,valid);
-                        *result -= temp;
-                        temp = 0;
+                        if (*valid){
+                            *result -= temp;
+                            temp = 0;
+                            *valid = true;
+                        }
                     }
                 }
-                else{
-                    *valid = false;
-                }
+                printf("Calculate %d %.2f %d\n", *valid, *result, *idx);
+            }
+            if (isSymbol(st[*idx])){
+                *valid = false;
             }
         }
     } else {
         return;
     }
+    printf("Akhir Calculate %d %.2f %d\n", *valid, *result, *idx);
 }
 
 void TimesDiv(char* st, int* idx, float* result, boolean *valid) {
+    //KAMUS LOKAL
     float temp;
+    
+    //ALGORITMA
+    printf(" Awal TimesDiv %d %.2f %d\n", *valid, *result, *idx);
     Sign(st,idx,result,valid);
-    while (st[*idx] == '*' || st[*idx] == '/')
-    {
-        if (st[*idx] == '*')
-        {
-            (*idx)++;
-            Sign(st,idx,&temp,valid);
-            (*result) *= temp;
-            temp = 0;
-        } else if (st[*idx] == '/')
-        {
-            (*idx)++;
-            Sign(st,idx,&temp,valid);
-            (*result) /= temp;
-            temp = 0;
-        }else{
+    if (*valid){
+        while ((st[*idx] == '*' || st[*idx] == '/') && *valid){
             *valid = false;
+            //if ((*idx)+1 == panjangKata){
+            //  *valid = false;
+            //} else{
+                if (st[*idx] == '*'){
+                    (*idx)++;
+                    if (st[*idx] != '-'){
+                        Sign(st,idx,&temp,valid);
+                        if (*valid){
+                            (*result) *= temp;
+                            temp = 0;
+                            *valid = true;
+                        }
+                    }
+                } else if (st[*idx] == '/'){
+                    (*idx)++;
+                    if (st[*idx] != '-'){
+                        Sign(st,idx,&temp,valid);
+                        if (*valid){
+                            (*result) /= temp;
+                            temp = 0;
+                            *valid = true;
+                        }
+                    }
+                }
+                printf("TimesDiv %d %.2f %d\n", *valid, *result, *idx);
+            //}
         }
     }
+    printf(" Akhir TimesDiv %d %.2f %d\n", *valid, *result, *idx);
 }
 
-void Sign(char* st,int* idx, float* result, boolean *valid) {
+void Sign(char* st,int* idx, float* result, boolean *valid)
+{
+    //KAMUS LOKAL
     float temp = 0;
     int x = 1;
-    if (st[*idx] == '*' || st[*idx] == '/' || st[*idx] == '+'){
-            *valid = false;
-    }
-    else if(st[*idx] == '(') {
+
+    //ALGORITMA
+    printf("  Awal Sign %d %.2f %d\n", *valid, *result, *idx);
+    if(st[*idx] == '('){
         (*idx)++;
         Calculate(st,idx,result,valid);
-        if (*idx == panjangKata && st[*idx] != ')'){
-            *valid = false;
-        }
-        else if (st[*idx] == ')'){
+        *valid = false;
+        if (st[*idx] == ')'){
             (*idx)++;
+            *valid = true;
         }
         //else print error
-    } else {
-        if (st[*idx] == '-')
-        {
+    } else{
+        if (st[*idx] == '-'){
             (*idx)++;
-            if (st[*idx] == '-'){
-                *valid = false;
-            } else{
-                x = -1;
-            }
+            x = -1;
         }
-        if (isNumber(st[*idx]))
-        {
+        if (isNumber(st[*idx])){
             Number(st,idx,result);
-            if (st[*idx] == '.')
-            {
+            if (st[*idx] == '.'){
                 (*idx)++;
                 FloatNumber(st,idx,&temp);
             }
-            *result = (*result+temp)*x;
+            *result = ((*result)+temp)*x;
             temp = 0;
-        }
-        else
-        {
-            if (st[*idx] == '('){
+            *valid = true;
+        } else if (st[*idx] == '('){
+            (*idx)++;
+            Calculate(st,idx,result,valid);
+            if (st[*idx] == ')'){
+                *result = (*result)*x;
+                temp = 0;
                 (*idx)++;
-                Calculate(st,idx,result,valid);
-                if (*idx == panjangKata && st[*idx] != ')'){
-                    *valid = false;
-                }
-                else if (st[*idx] == ')'){
-                    *result = (*result)*x;
-                    temp = 0;
-                    (*idx)++;
-                }
-                //else print error                
+                *valid = true;
             }
+            //else print error                
         }
     }
+    printf("  Akhir Sign %d %.2f %d\n", *valid, *result, *idx);
 }
 
 // 3-((4*5)6)
 
-void Number(char* st,int* idx, float* result) {
+void Number(char* st,int* idx, float* result)
+{
     if (!isNumber(st[*idx]))
         return;
     else
@@ -141,9 +160,13 @@ void Number(char* st,int* idx, float* result) {
     }
 }
 
-void FloatNumber(char* st,int* idx, float* result) {
+void FloatNumber(char* st,int* idx, float* result)
+{
+    //KAMUS LOKAL
     float n;
     int id = *idx;
+
+    //ALGORITMA
     Number(st, &id, &n);
     while(isNumber(st[*idx]))
     {
