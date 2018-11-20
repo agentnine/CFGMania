@@ -1,204 +1,206 @@
-#include "Calculated.h"
-#include <math.h>
+#include "calculatorv1.h"
 #include <stdio.h>
 /*
-S -> T | S+T | S-T calculate
-T -> F | T*F | T/F timesdiv
-F -> (S) | -A | A | A.A | -A.A sign
-A -> 0 | 1 | 2 | 3 | 4 | 5 | 6 | 7 | 8 | 9 | AA number
+S -> T1 | S+T1 | S-T2 Expression
+T1 -> P1 | T1*P1 | T1/P1 Term
+T2 -> P2 | T2+P2 | T2/P2 Term
+P1 -> F1 | F1^P2 Power
+P2 -> F2 | F2^P2 Power
+F1 -> (S) | -P1 | A Item
+F2 -> (S) | (-P2) | A Item
+A -> 0 | 1 | 2 | 3 | 4 | 5 | 6 | 7 | 8 | 9 | A.A | AA number
 */
 
-boolean isNumber(char st) {
-    return (st >= '0') && (st <='9');
+boolean isNumber(char token) {
+  return (token >= '0') && (token <='9');
 }
 
-boolean isSymbol(char st) {
-    return (st == '.') || (st == '(') || (st == ')') || (st == '+') || (st == '-') ||(st == '*') ||(st == '/');
+boolean isSymbol(char token) {
+  return (token == '.') || (token == '(') || (token == ')') || (token == '+') || (token == '-') ||(token == '*') ||(token == '/');
 }
 
-void Calculate(char *st, int *idx, float *result, boolean *valid) {
-    // KAMUS LOKAL
-    float temp;
+void Expression(char *token, int *idx, double *result, boolean *valid)
+/*Ekspression akan menjalankan variabel non terminal "S -> T1 | S+T1 | S-T2 Expression"
+  yang mengelola apakah program memiliki ekspresi + dan/atau - */
+{
+  //KAMUS LOKAL
+  double temp;
 
-    //ALGORITMA
-    printf("Awal Calculate %d %.2f %d\n", *valid, *result, *idx);
-    if (*idx < panjangKata){
-        TimesDiv(st, idx, result,valid);
-        if (*valid){
-            while ((st[*idx] == '+' || st[*idx] == '-') && *valid){
-                *valid = false;
-                if (st[*idx] == '+'){
-                    (*idx)++;
-                    if (st[*idx] != '-'){
-                        TimesDiv(st,idx,&temp,valid);
-                        if (*valid){
-                            *result += temp;
-                            temp = 0;
-                            *valid = true;
-                        }
-                    }
-                } else if (st[*idx] == '-'){
-                    (*idx)++;
-                    if (st[*idx] != '-'){
-                        TimesDiv(st,idx,&temp,valid);
-                        if (*valid){
-                            *result -= temp;
-                            temp = 0;
-                            *valid = true;
-                        }
-                    }
-                }
-                printf("Calculate %d %.2f %d\n", *valid, *result, *idx);
-            }
-            if (isSymbol(st[*idx])){
-                *valid = false;
-            }
-        }
-    } else {
-        return;
-    }
-    printf("Akhir Calculate %d %.2f %d\n", *valid, *result, *idx);
-}
-
-void TimesDiv(char* st, int* idx, float* result, boolean *valid) {
-    //KAMUS LOKAL
-    float temp;
-    
-    //ALGORITMA
-    printf(" Awal TimesDiv %d %.2f %d\n", *valid, *result, *idx);
-    power(st,idx,result,valid);
-    //Sign(st,idx,result,valid);
+  //ALGORITMA
+  if (*idx < panjangKata){
+    Term(token, idx, result,valid);
     if (*valid){
-        while ((st[*idx] == '*' || st[*idx] == '/') && *valid){
-            *valid = false;
-            //if ((*idx)+1 == panjangKata){
-            //  *valid = false;
-            //} else{
-                if (st[*idx] == '*'){
-                    (*idx)++;
-                    if (st[*idx] != '-'){
-                        power(st,idx,&temp,valid);
-                        if (*valid){
-                            (*result) *= temp;
-                            temp = 0;
-                            *valid = true;
-                        }
-                    }
-                } else if (st[*idx] == '/'){
-                    (*idx)++;
-                    if (st[*idx] != '-'){
-                        power(st,idx,&temp,valid);
-                        if (*valid){
-                            (*result) /= temp;
-                            temp = 0;
-                            *valid = true;
-                        }
-                    }
-                }
-                printf(" TimesDiv %d %.2f %d\n", *valid, *result, *idx);
-            //}
-        }
-    }
-    printf(" Akhir TimesDiv %d %.2f %d\n", *valid, *result, *idx);
-}
-
-void power(char* st, int* idx, float* result, boolean *valid)
-{
-    //KAMUS LOKAL
-    float temp = 0;
-     //ALGORTIMA
-    printf("  Awal Power %d %.2f %d\n", *valid, *result, *idx);
-    *valid = false;
-    Sign(st, idx, result, valid);
-    if(*valid) {
-        if(st[*idx] == '^') {
-            (*idx)++;
-            *valid = false;
-            if (st[*idx] != '-'){
-                power(st,idx,&temp,valid);
-                (*result) = pow((*result),temp);
-                printf("  Power %d %.2f %d\n", *valid, *result, *idx);
-            }
-        }
-    }
-    printf("  Akhir Power %d %.2f %d\n", *valid, *result, *idx);
-}
-
-void Sign(char* st,int* idx, float* result, boolean *valid)
-{
-    //KAMUS LOKAL
-    float temp = 0;
-    int x = 1;
-
-    //ALGORITMA
-    printf("   Awal Sign %d %.2f %d\n", *valid, *result, *idx);
-    if(st[*idx] == '('){
-        (*idx)++;
-        Calculate(st,idx,result,valid);
+      while ((token[*idx] == '+' || token[*idx] == '-') && *valid){
         *valid = false;
-        if (st[*idx] == ')'){
-            (*idx)++;
-            *valid = true;
-        }
-        //else print error
-    } else{
-        if (st[*idx] == '-'){
-            (*idx)++;
-            x = -1;
-        }
-        if (isNumber(st[*idx])){
-            Number(st,idx,result);
-            if (st[*idx] == '.'){
-                (*idx)++;
-                FloatNumber(st,idx,&temp);
+        if (token[*idx] == '+'){
+          //Percabangan ini akan menjakankan program saat menemukan ekspresi +
+          (*idx)++;
+          if (token[*idx] != '-'){
+            Term(token,idx,&temp,valid);
+            if (*valid){
+              *result += temp;
+              temp = 0;
+              *valid = true;
             }
-            *result = ((*result)+temp)*x;
+          }
+        } else if (token[*idx] == '-'){
+          //Percabangan ini akan menjakankan program saat menemukan ekspresi -
+          (*idx)++;
+          if (token[*idx] != '-'){
+            Term(token,idx,&temp,valid);
+            if (*valid){
+              *result -= temp;
+              temp = 0;
+              *valid = true;
+            }
+          }
+        }
+      }
+      if (isSymbol(token[*idx]) || isNumber(token[*idx])){
+        *valid = false;
+      }
+    }
+  } else {
+    return;
+  }
+}
+
+void Term(char* token, int* idx, double* result, boolean *valid)
+/*Ekspression akan menjalankan variabel non terminal "T1 -> P1 | T1*P1 | T1/P1 Term" atau
+  "T2 -> P2 | T2+P2 | T2/P2 Term" yang mengelola apakah program memiliki ekspresi * dan/atau / */
+{
+  //KAMUS LOKAL
+  double temp;
+    
+  //ALGORITMA
+  Power(token,idx,result,valid);
+  if (*valid){
+    while ((token[*idx] == '*' || token[*idx] == '/') && *valid){
+      *valid = false;
+      if (token[*idx] == '*'){
+        //Percabangan ini akan menjakankan program saat menemukan ekspresi *
+        (*idx)++;
+        if (token[*idx] != '-'){
+          Power(token,idx,&temp,valid);
+          if (*valid){
+            (*result) *= temp;
             temp = 0;
             *valid = true;
-        } else if (st[*idx] == '('){
-            (*idx)++;
-            Calculate(st,idx,result,valid);
-            if (st[*idx] == ')'){
-                *result = (*result)*x;
-                temp = 0;
-                (*idx)++;
-                *valid = true;
-            }
-            //else print error                
+          }
         }
+      } else if (token[*idx] == '/'){
+        //Percabangan ini akan menjakankan program saat menemukan ekspresi /
+        (*idx)++;
+        if (token[*idx] != '-'){
+          Power(token,idx,&temp,valid);
+          if (*valid){
+            (*result) /= temp;
+            temp = 0;
+            *valid = true;
+          }
+        }
+      }
     }
-    printf("   Akhir Sign %d %.2f %d\n", *valid, *result, *idx);
+  }
 }
 
-
-
-// 3-((4*5)6)
-
-void Number(char* st,int* idx, float* result)
+void Power(char* token, int* idx, double* result, boolean *valid)
+/*Ekspression akan menjalankan variabel non terminal "P1 -> F1 | F1^P2 Power" atau
+  "P2 -> F2 | F2^P2 Power" yang mengelola apakah program memiliki ekspresi ^ */
 {
-    if (!isNumber(st[*idx]))
-        return;
-    else
-    {
-        *result = ((*result)*10)+((float)st[*idx]-(float)'0');
-        (*idx)++;
-        Number(st,idx,result);
+  //KAMUS LOKAL
+  double temp = 0;
+    
+  //ALGORTIMA
+  *valid = false;
+  Item(token, idx, result, valid);
+  if(*valid) {
+    if(token[*idx] == '^') {
+      (*idx)++;
+      *valid = false;
+      if (token[*idx] != '-'){
+        Power(token,idx,&temp,valid);
+        (*result) = pow((*result),temp);
+      }
     }
+  }
 }
 
-void FloatNumber(char* st,int* idx, float* result)
+void Item(char* token,int* idx, double* result, boolean *valid)
+/*Ekspression akan menjalankan variabel non terminal "F1 -> (S) | -P1 | A Item"
+  "F2 -> (S) | (-P2) | A Item" yang mengelola apakah program memiliki ekspresi - dan/atau () */
 {
-    //KAMUS LOKAL
-    float n;
-    int id = *idx;
+  //KAMUS LOKAL
+  double temp = 0;
+  int x = 1;
 
-    //ALGORITMA
-    Number(st, &id, &n);
-    while(isNumber(st[*idx]))
-    {
-        n /= 10;
-        (*idx)++;
+  //ALGORITMA
+  if(token[*idx] == '('){
+    //Percabangan ini akan menjakankan program saat menemukan ekspresi ()
+    (*idx)++;
+    Expression(token,idx,result,valid);
+    *valid = false;
+    if (token[*idx] == ')'){
+      (*idx)++;
+      *valid = true;
     }
-    *result = n;
-    n = 0;
+  } else{  
+    if (token[*idx] == '-'){
+      //Percabangan ini akan menjakankan program saat menemukan ekspresi -
+      *valid = false;
+      if (token[*idx-1] != '-'){
+        (*idx)++;
+        x = -1;
+        Power(token,idx,result,valid);
+        if (*valid){
+          *result *= x;
+          *valid = true;
+        }
+      }
+    }
+    if (isNumber(token[*idx])){
+      Number(token,idx,result);
+      if (token[*idx] == '.'){
+        (*idx)++;
+        doubleNumber(token,idx,&temp);
+      }
+      *result = ((*result)+temp);
+      temp = 0;
+      *valid = true;
+    }
+  }
+  if (isSymbol(token[*idx] || isNumber(token[*idx]))){
+    *valid = false;
+  }
+}
+
+void Number(char* token,int* idx, double* result)
+/*Melakukan parsing untuk mendapat angka bilangan bulat sebelum koma jika bilangan adalah bilangan desimal*/
+{
+  //ALGORTMA
+  if (!isNumber(token[*idx]))
+    return;
+  else{
+    *result = ((*result)*10)+((double)token[*idx]-(double)'0');
+    (*idx)++;
+    Number(token,idx,result);
+  }
+}
+
+void doubleNumber(char* token,int* idx, double* result)
+/*Melakukan parsing untuk mendapat angka bilangan bulat setelah koma jika bilangan adalah bilangan desimal*/
+{
+  //KAMUS LOKAL
+  double n;
+  int id = *idx;
+
+  //ALGORITMA
+  Number(token, &id, &n);
+  while(isNumber(token[*idx]))
+  {
+    n /= 10;
+    (*idx)++;
+  }
+  *result = n;
+  n = 0;
 }
