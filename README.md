@@ -1,8 +1,8 @@
 # CALCUMANIA
 
-Tugas Besar II Teori Bahasa Formal dan Automata (TBFO) 2018 - Kalkulator
+### Tugas Besar II Teori Bahasa Formal dan Automata (TBFO) 2018 - Kalkulator
 
-### FOR BETTER USER EXPERIENCE, RUN THIS PROGRAM ON LINUX DISTRIBUTION (Ubuntu 18.04 advised).
+##### FOR BETTER USER EXPERIENCE, RUN THIS PROGRAM ON LINUX DISTRIBUTION (Ubuntu 18.04 advised).
 
 ## VERSION:
 Terdapat dua versi pada folder ini, v1 adalah kalkulator klasik yang tidak bisa menghitung ekspresi
